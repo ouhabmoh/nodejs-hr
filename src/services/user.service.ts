@@ -10,18 +10,23 @@ import { encryptPassword } from '../utils/encryption';
  * @returns {Promise<User>}
  */
 const createUser = async (
+  firstName: string,
+  lastName: string,
+  username: string,
   email: string,
   password: string,
-  name?: string,
-  role: Role = Role.USER
+  role: Role
 ): Promise<User> => {
   if (await getUserByEmail(email)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
   return prisma.user.create({
     data: {
+      firstName,
+      lastName,
+      username,
       email,
-      name,
+
       password: await encryptPassword(password),
       role
     }
@@ -47,8 +52,10 @@ const queryUsers = async <Key extends keyof User>(
   },
   keys: Key[] = [
     'id',
+    'firstName',
+    'lastName',
     'email',
-    'name',
+    'username',
     'password',
     'role',
     'isEmailVerified',
@@ -80,8 +87,10 @@ const getUserById = async <Key extends keyof User>(
   id: number,
   keys: Key[] = [
     'id',
+    'firstName',
+    'lastName',
     'email',
-    'name',
+    'username',
     'password',
     'role',
     'isEmailVerified',
@@ -105,8 +114,10 @@ const getUserByEmail = async <Key extends keyof User>(
   email: string,
   keys: Key[] = [
     'id',
+    'firstName',
+    'lastName',
     'email',
-    'name',
+    'username',
     'password',
     'role',
     'isEmailVerified',
@@ -129,7 +140,7 @@ const getUserByEmail = async <Key extends keyof User>(
 const updateUserById = async <Key extends keyof User>(
   userId: number,
   updateBody: Prisma.UserUpdateInput,
-  keys: Key[] = ['id', 'email', 'name', 'role'] as Key[]
+  keys: Key[] = ['id', 'firstName', 'lastName', 'email', 'username', 'role'] as Key[]
 ): Promise<Pick<User, Key> | null> => {
   const user = await getUserById(userId, ['id', 'email', 'name']);
   if (!user) {

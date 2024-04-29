@@ -1,10 +1,15 @@
 import Joi from 'joi';
 import { password } from './custom.validation';
+import { Role } from '@prisma/client';
 
 const register = {
   body: Joi.object().keys({
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
+    username: Joi.string().required(),
     email: Joi.string().required().email(),
-    password: Joi.string().required().custom(password)
+    password: Joi.string().required().custom(password),
+    role: Joi.string().required().valid(Role.CANDIDATE, Role.RECRUITER, Role.ADMIN)
   })
 };
 

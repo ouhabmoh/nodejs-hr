@@ -12,10 +12,13 @@ datasource db {
 
 model User {
   id              Int      @id @default(autoincrement())
+  firstName String
+  lastName String
   email           String   @unique
+  username String @unique
   name            String?
   password        String
-  role            Role     @default(USER)
+  role            Role     @default(CANDIDATE)
   isEmailVerified Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -34,7 +37,8 @@ model Token {
 }
 
 enum Role {
-  USER
+  CANDIDATE
+  RECRUITER
   ADMIN
 }
 
