@@ -2,21 +2,10 @@ import express from 'express';
 import auth from '../../middlewares/auth';
 import validate from '../../middlewares/validate';
 import { jobValidation } from '../../validations';
-import { jobController, applicationController } from '../../controllers';
+import { applicationController } from '../../controllers';
 import upload from '../../middlewares/upload';
 
 const router = express.Router();
-
-// Job routes
-router
-  .route('/')
-  .post(auth('manageJobs'), validate(jobValidation.createJob), jobController.createJob)
-  .get(auth('getJobs'), validate(jobValidation.getJobs), jobController.getJobs);
-
-router
-  .route('/:jobId')
-  .get(auth('getJobs'), validate(jobValidation.getJob), jobController.getJob)
-  .patch(auth('manageJobs'), validate(jobValidation.updateJob), jobController.updateJob);
 
 // Application routes
 router

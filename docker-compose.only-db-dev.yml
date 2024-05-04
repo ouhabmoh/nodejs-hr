@@ -1,17 +1,23 @@
 
-version: '3.8'
 services:
   db:
     image: postgres
     restart: always
     container_name: postgresdb-util-dev
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=secret
+
+      POSTGRES_PASSWORD: nodejshr
+      POSTGRES_DB: mydb
     ports:
-      - '5432:5432'
+      - '54322:5432'
     volumes: 
-      - db:/var/lib/postgresql/data
+      - db2:/var/lib/postgresql/data
+
+
+
 volumes:
-  db:
+  db2:
     driver: local
+
+
+

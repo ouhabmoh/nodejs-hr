@@ -20,6 +20,7 @@ const verifyCallback =
 
     if (requiredRights.length) {
       const userRights = roleRights.get(user.role) ?? [];
+
       const hasRequiredRights = requiredRights.every((requiredRight) =>
         userRights.includes(requiredRight)
       );

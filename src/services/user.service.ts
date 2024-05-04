@@ -17,8 +17,8 @@ const createUser = async (
   password: string,
   role: Role
 ): Promise<User> => {
-  if (await getUserByEmail(email)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  if ((await getUserByUsername(username)) || (await getUserByEmail(email))) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email or Username already taken');
   }
   return prisma.user.create({
     data: {
@@ -60,7 +60,8 @@ const queryUsers = async <Key extends keyof User>(
     'role',
     'isEmailVerified',
     'createdAt',
-    'updatedAt'
+    'updatedAt',
+    'deletedAt'
   ] as Key[]
 ): Promise<Pick<User, Key>[]> => {
   const page = options.page ?? 1;
@@ -68,7 +69,7 @@ const queryUsers = async <Key extends keyof User>(
   const sortBy = options.sortBy;
   const sortType = options.sortType ?? 'desc';
   const users = await prisma.user.findMany({
-    where: filter,
+    where: { ...filter, deletedAt: null },
     select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {}),
     skip: page * limit,
     take: limit,
@@ -132,6 +133,34 @@ const getUserByEmail = async <Key extends keyof User>(
 };
 
 /**
+ * Get user by  username
+ 
+ * * @param {string} username
+ * @param {Array<Key>} keys
+ * @returns {Promise<Pick<User, Key> | null>}
+ */
+const getUserByUsername = async <Key extends keyof User>(
+  username: string,
+  keys: Key[] = [
+    'id',
+    'firstName',
+    'lastName',
+    'email',
+    'username',
+    'password',
+    'role',
+    'isEmailVerified',
+    'createdAt',
+    'updatedAt'
+  ] as Key[]
+): Promise<Pick<User, Key> | null> => {
+  return prisma.user.findUnique({
+    where: { username },
+    select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {})
+  }) as Promise<Pick<User, Key> | null>;
+};
+
+/**
  * Update user by id
  * @param {ObjectId} userId
  * @param {Object} updateBody
@@ -142,12 +171,15 @@ const updateUserById = async <Key extends keyof User>(
   updateBody: Prisma.UserUpdateInput,
   keys: Key[] = ['id', 'firstName', 'lastName', 'email', 'username', 'role'] as Key[]
 ): Promise<Pick<User, Key> | null> => {
-  const user = await getUserById(userId, ['id', 'email', 'name']);
+  const user = await getUserById(userId, ['id', 'email', 'username']);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
   if (updateBody.email && (await getUserByEmail(updateBody.email as string))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  }
+  if (updateBody.username && (await getUserByUsername(updateBody.username as string))) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Username already taken');
   }
   const updatedUser = await prisma.user.update({
     where: { id: user.id },
@@ -167,6 +199,7 @@ const deleteUserById = async (userId: number): Promise<User> => {
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
+
   await prisma.user.delete({ where: { id: user.id } });
   return user;
 };
@@ -176,6 +209,7 @@ export default {
   queryUsers,
   getUserById,
   getUserByEmail,
+  getUserByUsername,
   updateUserById,
   deleteUserById
 };

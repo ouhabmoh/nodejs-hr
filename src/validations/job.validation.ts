@@ -4,16 +4,19 @@ const createJob = {
   body: Joi.object().keys({
     title: Joi.string().required(),
     description: Joi.string().required(),
-    department: Joi.string().required(),
-    location: Joi.string().required()
+    location: Joi.string().required(),
+    employmentType: Joi.string()
+      .valid('full-time', 'part-time', 'contract', 'internship')
+      .required(),
+    deadline: Joi.date().greater(new Date()).required()
   })
 };
 
 const getJobs = {
   query: Joi.object().keys({
     title: Joi.string(),
-    department: Joi.string(),
     location: Joi.string(),
+    employmentType: Joi.string().valid('full-time', 'part-time', 'contract', 'internship'),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
     page: Joi.number().integer()
@@ -33,8 +36,10 @@ const updateJob = {
   body: Joi.object().keys({
     title: Joi.string(),
     description: Joi.string(),
-    department: Joi.string(),
-    location: Joi.string()
+    location: Joi.string(),
+    employmentType: Joi.string().valid('full-time', 'part-time', 'contract', 'internship'),
+    isClosed: Joi.boolean(),
+    deadline: Joi.date().greater(new Date())
   })
 };
 
@@ -49,10 +54,7 @@ const applyJob = {
     jobId: Joi.number().integer().required()
   }),
   body: Joi.object().keys({
-    candidateName: Joi.string().required(),
-    email: Joi.string().email().required(),
-    resume: Joi.string().required(),
-    coverletter: Joi.string().required()
+    coverletter: Joi.string()
   })
 };
 
@@ -61,8 +63,7 @@ const getApplications = {
     jobId: Joi.number().integer().required()
   }),
   query: Joi.object().keys({
-    status: Joi.string(),
-    candidateName: Joi.string(),
+    status: Joi.string().valid('pending', 'accepted', 'rejected'),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
     page: Joi.number().integer()
@@ -82,11 +83,12 @@ const reviewApplication = {
     applicationId: Joi.number().integer().required()
   }),
   body: Joi.object().keys({
-    status: Joi.string().valid('pending', 'accepted', 'rejected').required()
+    status: Joi.string().valid('pending', 'accepted', 'rejected').required(),
+    evaluation: Joi.number()
   })
 };
 
-export const jobValidation = {
+export default {
   createJob,
   getJobs,
   getJob,

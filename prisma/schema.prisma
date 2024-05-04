@@ -11,18 +11,63 @@ datasource db {
 }
 
 model User {
-  id              Int      @id @default(autoincrement())
+  id        Int    @id @default(autoincrement())
   firstName String
-  lastName String
-  email           String   @unique
-  username String @unique
-  name            String?
+  lastName  String
+  email     String @unique
+  username  String @unique
+
   password        String
   role            Role     @default(CANDIDATE)
   isEmailVerified Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  deletedAt        DateTime?   // Field to indicate soft deletion
   Token           Token[]
+
+  resumes     Resume[]
+  jobs        Job[]
+  Application Application[]
+}
+
+model Job {
+  id             Int           @id @default(autoincrement())
+  title          String
+  description    String
+  location       String
+  employmentType String
+  deadline       DateTime
+  isClosed         Boolean    @default(false) // New field to indicate if the job is closed
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  recruiter      User          @relation(fields: [recruiterId], references: [id])
+  recruiterId    Int
+  applications   Application[]
+}
+
+model Application {
+  id          Int      @id @default(autoincrement())
+  job         Job      @relation(fields: [jobId], references: [id])
+  jobId       Int
+  candidate   User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidateId Int
+  resume      Resume   @relation(fields: [resumeId], references: [id])
+  resumeId    Int      @unique
+  status      String
+  evaluation  Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Resume {
+  id          Int          @id @default(autoincrement())
+  candidate   User         @relation(fields: [candidateId], references: [id] , onDelete: Cascade)
+  candidateId Int
+  filename    String
+  application Application?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model Token {
