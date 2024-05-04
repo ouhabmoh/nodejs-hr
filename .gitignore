@@ -19,3 +19,8 @@ db
 
 # TypeScript
 build
+
+
+uploads
+
+*.pdf
