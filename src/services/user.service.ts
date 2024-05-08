@@ -1,4 +1,4 @@
-import { User, Role, Prisma } from '@prisma/client';
+import { User, Role, Prisma, Token } from '@prisma/client';
 import httpStatus from 'http-status';
 import prisma from '../client';
 import ApiError from '../utils/ApiError';
@@ -69,12 +69,9 @@ const queryUsers = async <Key extends keyof User>(
   const sortBy = options.sortBy;
   const sortType = options.sortType ?? 'desc';
   const users = await prisma.user.findMany({
-    where: { ...filter, deletedAt: null },
-    select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {}),
-    skip: page * limit,
-    take: limit,
-    orderBy: sortBy ? { [sortBy]: sortType } : undefined
+    //where: { ...filter },
   });
+  console.log(users);
   return users as Pick<User, Key>[];
 };
 
@@ -92,7 +89,6 @@ const getUserById = async <Key extends keyof User>(
     'lastName',
     'email',
     'username',
-    'password',
     'role',
     'isEmailVerified',
     'createdAt',
@@ -200,7 +196,35 @@ const deleteUserById = async (userId: number): Promise<User> => {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
 
-  await prisma.user.delete({ where: { id: user.id } });
+  if (user.role === Role.RECRUITER) {
+    const randomString = Math.random().toString(36).substring(2);
+    // De-anonymize recruiter by appending "Recruiter" with the recruiter's ID
+    const updatedRecruiter = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        deletedAt: new Date(),
+        firstName: `Recruiter ${randomString}`, // Update first name with random string
+        lastName: `Recruiter ${randomString}`, // Update last name with random string
+        username: `Recruiter${user.id}${randomString}`, // Update username with "Recruiter" + recruiter's ID + random string
+        email: `recruiter${user.id}${randomString}@example.com`
+      }
+    });
+
+    await prisma.token.deleteMany({ where: { userId: user.id } });
+
+    return updatedRecruiter;
+  } else if (user.role === Role.CANDIDATE) {
+    // Hard delete for candidate
+    // Delete user, resumes, and applications
+
+    await prisma.user.delete({
+      where: { id: user.id },
+      include: {
+        resumes: true,
+        Application: true
+      }
+    });
+  }
   return user;
 };
 

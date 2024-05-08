@@ -9,7 +9,7 @@ const register = {
     username: Joi.string().required(),
     email: Joi.string().required().email(),
     password: Joi.string().required().custom(password),
-    role: Joi.string().required().valid(Role.CANDIDATE, Role.RECRUITER, Role.ADMIN)
+    role: Joi.string().required().valid(Role.CANDIDATE, Role.RECRUITER)
   })
 };
 

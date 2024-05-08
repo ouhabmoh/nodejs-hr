@@ -11,12 +11,16 @@ router
   .post(auth('manageUsers'), validate(userValidation.createUser), userController.createUser)
   .get(auth('getUsers'), validate(userValidation.getUsers), userController.getUsers);
 
+router.get('/me', auth(), userController.getCurrentUser);
+
+router.patch('/me', auth(), userController.updateCurrentUser);
+
 router
   .route('/:userId')
   .get(auth('getUsers'), validate(userValidation.getUser), userController.getUser)
-  .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
-  .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
+  .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser);
 
+router.delete('/me', auth(), userController.deleteCurrentUser);
 export default router;
 
 /**

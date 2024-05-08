@@ -13,7 +13,7 @@ const createJob = catchAsync(async (req, res) => {
 
 const getJobs = catchAsync(async (req, res) => {
   const user = req.user as User;
-  const filter = pick(req.query, ['title', 'location', 'employmentType']);
+  const filter = pick(req.query, ['title', 'location', 'employmentType', 'isClosed']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
 
   const result = await jobService.queryJobs(filter, user.role, options);

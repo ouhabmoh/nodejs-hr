@@ -38,13 +38,18 @@ const queryJobs = async <Key extends keyof Job>(
   const limit = options.limit ?? 10;
   const sortBy = options.sortBy;
   const sortType = options.sortType ?? 'desc';
-  const jobs = await prisma.job.findMany({
-    where: {
+  if (userRole === Role.CANDIDATE) {
+    filter = {
       ...filter,
-      isClosed: userRole === Role.CANDIDATE ? true : false,
+      isClosed: false,
       deadline: {
         gt: new Date() // Filter for jobs with deadline greater than current date
       }
+    };
+  }
+  const jobs = await prisma.job.findMany({
+    where: {
+      ...filter
     },
     select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {}),
     skip: (page - 1) * limit,

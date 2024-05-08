@@ -18,6 +18,7 @@ const getJobs = {
     location: Joi.string(),
     employmentType: Joi.string().valid('full-time', 'part-time', 'contract', 'internship'),
     sortBy: Joi.string(),
+    isClosed: Joi.boolean(),
     limit: Joi.number().integer(),
     page: Joi.number().integer()
   })
@@ -59,9 +60,6 @@ const applyJob = {
 };
 
 const getApplications = {
-  params: Joi.object().keys({
-    jobId: Joi.number().integer().required()
-  }),
   query: Joi.object().keys({
     status: Joi.string().valid('pending', 'accepted', 'rejected'),
     sortBy: Joi.string(),

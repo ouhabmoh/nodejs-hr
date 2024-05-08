@@ -1,4 +1,4 @@
-import { Application } from '@prisma/client';
+import { Application, Job } from '@prisma/client';
 import httpStatus from 'http-status';
 import prisma from '../client';
 import ApiError from '../utils/ApiError';
@@ -12,11 +12,11 @@ const applyJob = async (
   file: any,
   currentUser: any
 ): Promise<Application> => {
-  const job = await jobService.getJobById(jobId, ['id', 'deadline']);
+  const job = await jobService.getJobById(jobId, ['id', 'isClosed', 'deadline']);
   if (!job) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Job not found');
   }
-  if (job.deadline < new Date()) {
+  if (job.deadline < new Date() || job.isClosed) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'This job application is closed');
   }
 
@@ -56,10 +56,15 @@ const queryApplications = async <Key extends keyof Application>(
   const sortBy = options.sortBy;
   const sortType = options.sortType ?? 'desc';
 
-  const applications = await prisma.application.findMany({
-    where: {
+  if (jobId) {
+    filter = {
       ...filter,
       jobId
+    };
+  }
+  const applications = await prisma.application.findMany({
+    where: {
+      ...filter
     },
     select: {
       ...keys.reduce((obj, k) => ({ ...obj, [k]: true }), {}),
@@ -92,6 +97,18 @@ const getApplicationById = async <Key extends keyof Application>(
   applicationId: number,
   keys: Key[] = ['id', 'candidateId', 'status', 'createdAt', 'updatedAt'] as Key[]
 ): Promise<ApplicationWithCandidate<Key> | null> => {
+  const job = await prisma.job.findFirst({
+    where: { id: jobId },
+    select: {
+      id: true,
+      title: true
+    }
+  });
+
+  if (!job) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Job not found');
+  }
+
   const application = await prisma.application.findFirst({
     where: { id: applicationId, jobId },
     select: {
@@ -106,9 +123,11 @@ const getApplicationById = async <Key extends keyof Application>(
       }
     }
   });
+
   if (!application) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Application not found');
   }
+
   return {
     ...application,
     candidate: {

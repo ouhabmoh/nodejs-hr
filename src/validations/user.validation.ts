@@ -28,9 +28,6 @@ const getUser = {
 };
 
 const updateUser = {
-  params: Joi.object().keys({
-    userId: Joi.number().integer()
-  }),
   body: Joi.object()
     .keys({
       email: Joi.string().email(),

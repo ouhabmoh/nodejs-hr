@@ -7,7 +7,8 @@ const allRoles = {
     'getJobs',
     'reviewApplication',
     'getApplications',
-    'getApplication'
+    'getApplication',
+    'getUsers'
   ],
   [Role.ADMIN]: ['getUsers', 'manageUsers']
 };
