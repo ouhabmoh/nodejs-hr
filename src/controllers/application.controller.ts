@@ -5,6 +5,9 @@ import catchAsync from '../utils/catchAsync';
 import { applicationService } from '../services';
 
 const applyJob = catchAsync(async (req, res) => {
+  console.log('sssssssssssssssssssssssssssssssssssss\nsssssssssssssssssssssssssssss');
+  console.log(req.file);
+  console.log(req.resume);
   const application = await applicationService.applyJob(
     req.params.jobId,
     req.body,

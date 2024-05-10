@@ -1,4 +1,4 @@
-import { Application, Job } from '@prisma/client';
+import { Application } from '@prisma/client';
 import httpStatus from 'http-status';
 import prisma from '../client';
 import ApiError from '../utils/ApiError';
@@ -19,9 +19,12 @@ const applyJob = async (
   if (job.deadline < new Date() || job.isClosed) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'This job application is closed');
   }
-
-  const resumeFilePath = await uploadFile(file);
-
+  let resumeFilePath = 'upload';
+  try {
+    resumeFilePath = await uploadFile(file);
+  } catch (err) {
+    console.log(err);
+  }
   const resume = await prisma.resume.create({
     data: {
       candidateId: currentUser.id,

@@ -3,7 +3,6 @@ import auth from '../../middlewares/auth';
 import validate from '../../middlewares/validate';
 import { jobValidation } from '../../validations';
 import { applicationController } from '../../controllers';
-import upload from '../../middlewares/upload';
 
 const router = express.Router();
 

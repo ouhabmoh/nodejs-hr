@@ -21,12 +21,7 @@ router
 // Application routes
 router
   .route('/:jobId/applications')
-  .post(
-    auth('applyJob'),
-    upload.single('resume'),
-    validate(jobValidation.applyJob),
-    applicationController.applyJob
-  )
+  .post(auth('applyJob'), upload, validate(jobValidation.applyJob), applicationController.applyJob)
   .get(
     auth('getApplications'),
     validate(jobValidation.getApplications),

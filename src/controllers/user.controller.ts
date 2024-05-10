@@ -53,8 +53,7 @@ const deleteUser = catchAsync(async (req, res) => {
 
 const deleteCurrentUser = catchAsync(async (req, res) => {
   const currentUser = req.user as User;
-  console.log('*****************************************************');
-  console.log(currentUser);
+
   await userService.deleteUserById(currentUser.id);
   res.status(httpStatus.NO_CONTENT).send();
 });

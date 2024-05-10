@@ -7,7 +7,7 @@ import { User } from '@prisma/client';
 const register = catchAsync(async (req, res) => {
   const { firstName, lastName, username, email, password, role } = req.body;
   const user = await userService.createUser(firstName, lastName, username, email, password, role);
-  const userWithoutPassword = exclude(user, ['password', 'createdAt', 'updatedAt']);
+  const userWithoutPassword = exclude(user, ['password', 'createdAt', 'updatedAt', 'deletedAt']);
   const tokens = await tokenService.generateAuthTokens(user);
   res.status(httpStatus.CREATED).send({ user: userWithoutPassword, tokens });
 });
