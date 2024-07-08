@@ -6,7 +6,7 @@ services:
     restart: always
     container_name: postgresdb-util-test
     environment:
-
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: nodejshr
       POSTGRES_DB: mydb
     ports:

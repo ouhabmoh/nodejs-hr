@@ -279,133 +279,8 @@ describe('Job Routes', () => {
       });
     });
 
-    describe.only('POST /v1/jobs/:jobId/applications', () => {
-      it('should create a new application for a job', async () => {
-        const job = await prisma.job.create({
-          data: {
-            title: 'Software Engineer',
-            description: 'We are hiring a software engineer',
-            location: 'New York',
-            employmentType: 'full-time',
-            deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            recruiterId: recruiterId
-          }
-        });
 
-        const applicationData = {
-          coverletter: 'I am a highly skilled software engineer with experience in...'
-        };
-        const filepath = path.join(fixturesDir, 'resume.pdf');
-        const filePath = path.join(__dirname, 'resumes/resume.pdf');
-        const resume = fs.createReadStream(filePath);
-
-        // Create a mock Buffer object
-        // Create a mock PDF buffer
-        const mockPdfBuffer = Buffer.from('%PDF-1.4\n%\xc2\xaf\xc2\xa8\xc2\xb5\n');
-
-        //@ts-ignore
-        mockDeep(fsPromises.writeFile).mockResolvedValue(undefined);
-        //@ts-ignore
-        const writeFileMock = fsPromises.writeFile.mockResolvedValue(undefined);
-        await request(app)
-          .post(`/v1/jobs/${job.id}/applications`)
-          .set('Authorization', `Bearer ${candidateAccessToken}`)
-          .field(applicationData)
-          .attach('resume', mockPdfBuffer, { filename: 'test_resume.pdf' })
-          .expect(201);
-
-        // expect(res.body).toHaveProperty('id');
-        // expect(res.body.jobId).toBe(job.id);
-        // expect(res.body.candidateId).toBe(candidateId);
-        // expect(res.body.status).toBe('pending');
-        // expect(res.body.coverletter).toBe(applicationData.coverletter);
-      });
-
-      it('should return 400 if job application is closed', async () => {
-        const job = await prisma.job.create({
-          data: {
-            title: 'Software Engineer',
-            description: 'We are hiring a software engineer',
-            location: 'New York',
-            employmentType: 'full-time',
-            deadline: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-            isClosed: true,
-            recruiterId: recruiterId
-          }
-        });
-
-        const applicationData = {
-          coverletter: 'I am a highly skilled software engineer with experience in...'
-        };
-        console.log(fixturesDir);
-        const filepath = path.join(fixturesDir, 'resume.pdf');
-        console.log(filepath);
-        const filePath = path.join(__dirname, 'test_resume.pdf');
-        const resume = fs.createReadStream(filePath);
-
-        await request(app)
-          .post(`/v1/jobs/${job.id}/applications`)
-          .set('Authorization', `Bearer ${candidateAccessToken}`)
-          .field(applicationData)
-          .attach('resume', resume, { contentType: 'application/pdf' })
-          .expect(400);
-      });
-    });
-
-    describe('GET /v1/jobs/:jobId/applications', () => {
-      it('should return applications for a job', async () => {
-        const job = await prisma.job.create({
-          data: {
-            title: 'Software Engineer',
-            description: 'We are hiring a software engineer',
-            location: 'New York',
-            employmentType: 'full-time',
-            deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            recruiterId: recruiterId
-          }
-        });
-
-        const application1 = await prisma.application.create({
-          data: {
-            jobId: job.id,
-            candidateId: candidateId,
-            resumeId: 1,
-            status: 'pending'
-          }
-        });
-
-        const application2 = await prisma.application.create({
-          data: {
-            jobId: job.id,
-            candidateId: candidateId,
-            resumeId: 2,
-            status: 'accepted'
-          }
-        });
-
-        const res = await request(app)
-          .get(`/v1/jobs/${job.id}/applications`)
-          .set('Authorization', `Bearer ${accessToken}`)
-          .expect(200);
-
-        expect(res.body).toHaveLength(2);
-        // @ts-ignore
-        expect(res.body.map((app) => app.id)).toContain(application1.id);
-        // @ts-ignore
-        expect(res.body.map((app) => app.id)).toContain(application2.id);
-        expect(res.body[0]).toHaveProperty('candidate');
-        expect(res.body[1]).toHaveProperty('candidate');
-      });
-
-      it('should return 404 if job is not found', async () => {
-        const nonExistentJobId = 999;
-
-        await request(app)
-          .get(`/v1/jobs/${nonExistentJobId}/applications`)
-          .set('Authorization', `Bearer ${accessToken}`)
-          .expect(404);
-      });
-    });
+   
 
     describe('GET /v1/jobs/:jobId/applications/:applicationId', () => {
       it('should return an application by id', async () => {
@@ -420,14 +295,30 @@ describe('Job Routes', () => {
           }
         });
 
-        const application = await prisma.application.create({
-          data: {
-            jobId: job.id,
-            candidateId: candidateId,
-            resumeId: 1,
-            status: 'pending'
-          }
-        });
+       // Create resumes
+  const resume1 = await prisma.resume.create({
+    data: {
+      filename: 'john_doe_resume.pdf',
+      candidate: {
+        connect: {
+          id: candidateId
+        }
+      }
+    }
+  });
+
+
+
+  // Create applications using resume IDs
+  const application = await prisma.application.create({
+    data: {
+      jobId: job.id,
+      candidateId: candidateId,
+      resumeId: resume1.id,
+      status: 'pending'
+    }
+  });
+
 
         const res = await request(app)
           .get(`/v1/jobs/${job.id}/applications/${application.id}`)
